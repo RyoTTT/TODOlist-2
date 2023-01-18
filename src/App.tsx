@@ -14,9 +14,10 @@ function App()  {
   const [editTodo,setEditTodo] = useState<string>("");
   const [todoId,setTodoId] = useState<number>(1);
 
-
+//入力文字をセット
   const textInput=(e:React.ChangeEvent<HTMLInputElement>) => setTodoText(e.target.value);
 
+//配列に入力したものを入れる
   const addTodo = () =>{
     const newTodos:todos = {
       id:todoId,
@@ -29,21 +30,25 @@ function App()  {
     console.log(todoList);
   };
 
+//TODO削除
   const deleteTodo = (id:number) =>{
     const removeTodo = todoList.filter((todo)=> todo.id !== id);
     setTodoList(removeTodo);
   }
 
+//編集モードオン
   const editTodoContents = (todo:todos) => {
     setEdit(true);
     setEditTodo(todo.text);
     updateTodo(todo)
   }
 
+//編集したものを保持
   const editText = (e:React.ChangeEvent<HTMLInputElement>) => {
     setEditTodo(e.target.value);
   }
 
+//編集したものを更新
   const updateTodo = (TODO:todos) => {
     const newTodo:todos = todoList.map((todo)=> {
       if(todo.id === TODO.id) {
@@ -55,9 +60,21 @@ function App()  {
     })
   }
   
+//完了状態を変更
+  const completeTodo = (state:boolean) => {
+    return !state;
+  }
 
-  const completeTodo = (todo:todos) => {
-    console.log(todo);
+//完了状態によって並び替え
+  const listSort = (todoList:todos[]) =>{
+    const sortedTodoList = todoList.sort((todo)=>{
+      if(todo.state === false) {
+        return +1;
+      } else {
+        return -1;
+      }
+      setTodoList(sortedTodoList);
+    })
   }
 
 
@@ -74,7 +91,7 @@ function App()  {
     <ChakraProvider>
       <Flex>
         <Input size="sm" type="text" value={editTodo} onChange={editText}></Input>
-        <Button onClick={}>更新</Button>
+        <Button >更新</Button>
         <Button onClick={()=>setEdit(false)}>キャンセル</Button>
       </Flex>
     </ChakraProvider>
@@ -93,9 +110,10 @@ function App()  {
       <div className="Todos">
     <ChakraProvider>
       <Stack>
+        <Button onClick={()=>listSort(todoList)}>並び替え</Button>
         {todoList.map((todo)=>
           <Box key={todo.id}>{todo.text}
-          <Checkbox onChange={()=>completeTodo(todo)}>完了</Checkbox>
+          <Checkbox onChange={()=>completeTodo(todo.state)}>完了</Checkbox>
           <Button onClick={()=>deleteTodo(todo.id)}>削除</Button>
           <Button onClick={()=>editTodoContents(todo)}>編集</Button>
           </Box>
