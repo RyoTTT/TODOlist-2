@@ -34,26 +34,27 @@ function App()  {
     setTodoList(removeTodo);
   }
 
-  const editTodoContents = (text:string,id:number) => {
+  const editTodoContents = (todo:todos) => {
     setEdit(true);
-    setEditTodo(text);
-    updateTodo(text,id)
+    setEditTodo(todo.text);
+    updateTodo(todo)
   }
 
   const editText = (e:React.ChangeEvent<HTMLInputElement>) => {
     setEditTodo(e.target.value);
   }
 
-  const updateTodo = (text:string,id:number) => {
-    const newTodo = todoList.map((todo)=> {
-      if(id === todoList.id) {
-        return ;
+  const updateTodo = (TODO:todos) => {
+    const newTodo:todos = todoList.map((todo)=> {
+      if(todo.id === TODO.id) {
+        return editTodo;
       } else {
-        return todoList.text;
+        return todo.text;
       }
-      
-    }
+      setTodoList(newTodo);
+    })
   }
+  
 
   const completeTodo = (todo:todos) => {
     console.log(todo);
@@ -96,7 +97,7 @@ function App()  {
           <Box key={todo.id}>{todo.text}
           <Checkbox onChange={()=>completeTodo(todo)}>完了</Checkbox>
           <Button onClick={()=>deleteTodo(todo.id)}>削除</Button>
-          <Button onClick={()=>editTodoContents(todo.text,todo.id)}>編集</Button>
+          <Button onClick={()=>editTodoContents(todo)}>編集</Button>
           </Box>
         )}
       </Stack>
