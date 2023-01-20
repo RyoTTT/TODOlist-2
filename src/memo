@@ -4,3 +4,5 @@
           <Checkbox>完了したらチェック</Checkbox>
           </Box>
         })}
+
+        const resetTodoLists = todoList2.filter((todo:any)=> typeof todo.state === "number");
