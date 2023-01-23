@@ -1,6 +1,9 @@
 import React, { useState , useEffect } from 'react';
 import {Box, ButtonGroup, Center, ChakraProvider, Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react';
 import {Button, Input, Flex } from '@chakra-ui/react';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, provider } from './firebase';
+import { useAuthState } from "react-firebase-hooks/auth";
 
 function App()  {
   //type todos = {
@@ -16,10 +19,10 @@ function App()  {
   const [editTargetTodo,setEditTargetTodo] = useState<any>({});
   const [details,setDetails] = useState<any>([]);
   const [detailText,setDetailText] = useState<string>("");
-    // 表示用のtodoリスト
-    const [displayedTodoList, setDisplayedTodoList] = useState<any>([])
-    // 絞り込み用todoリスト
-    const [filteredTodoList, setFilteredTodoList] = useState<any>([])
+  const [displayedTodoList, setDisplayedTodoList] = useState<any>([]);
+  const [filteredTodoList, setFilteredTodoList] = useState<any>([]);
+  const [filterState, setFilterState] = useState<boolean>(false);
+  
 
 //入力文字をセット
   const textInput=(e:React.ChangeEvent<HTMLInputElement>) => setTodoText(e.target.value);
@@ -28,9 +31,10 @@ function App()  {
 useEffect(() => {
   if (filteredTodoList.length > 0) {
     setDisplayedTodoList([...filteredTodoList])
-  } if (filteredTodoList.length = 0) {
-    setDisplayedTodoList([{}])
-  } else {
+  } else if (filterState === true && filteredTodoList.length === 0) {
+    setDisplayedTodoList([]);
+  }
+  else {
     setDisplayedTodoList(todoList);
   }
 }, [todoList, filteredTodoList])
@@ -142,27 +146,59 @@ const addDetail = () => {
 const todoFilter1 = (todoList:any) => {
   const filterTodoList = todoList.filter((todo:any)=> todo.state === 1)
   setFilteredTodoList([...filterTodoList])
+  if (todoList.length > 0) {
+    setFilterState(true);
+  } else {
+    setFilterState(false);
+  }
 }
 
 const todoFilter2 = (todoList:any) => {
   const filterTodoList = todoList.filter((todo:any)=> todo.state === 2)
   setFilteredTodoList([...filterTodoList])
+  if (todoList.length > 0) {
+    setFilterState(true);
+  } else {
+    setFilterState(false);
+  };
 }
 
 const todoFilter3 = (todoList:any) => {
   const filterTodoList = todoList.filter((todo:any)=> todo.state === 3)
   setFilteredTodoList([...filterTodoList])
+  if (todoList.length > 0) {
+    setFilterState(true);
+  } else {
+    setFilterState(false);
+  };
 }
 
 //絞り込み後から元に戻す
 const resetTodoList = () => {
   setFilteredTodoList([])
+  setFilterState(false);
 }
+
+//グーグルサインイン
+  const signInWithGoogle = () => {
+    signInWithPopup(auth,provider);
+  }
+//グーグルサインアウト
+  const signOutWithGoogle = () => {
+    auth.signOut();
+  }
+//user取得
+const [user] = useAuthState(auth);
 
 
 
 return (
   <>
+  { user ? (<>
+  <Box paddingTop="10px" paddingLeft="10px">
+  <p>ユーザー名:{auth.currentUser?.displayName}</p>
+  <Button type="button" onClick={signOutWithGoogle}>サインアウト</Button>
+  </Box>
     {edit ? (
       <ChakraProvider>
         <Center paddingTop="20px" paddingBottom="20px">
@@ -177,7 +213,7 @@ return (
       </ChakraProvider>
     ) : (
       <ChakraProvider>
-        <h1>TODO LIST</h1>
+        
         <Center paddingTop="20px" paddingBottom="20px">
         <form>
           <Flex display="flex" w="520px" bg="">
@@ -189,9 +225,7 @@ return (
         </form>
         </Center>
       </ChakraProvider>
-    )}
-
-
+    ) }
       <ChakraProvider>
           <Center>
           <Button onClick={() => listSort(todoList)} size="sm" marginRight="10px">並び替え</Button>
@@ -220,7 +254,6 @@ return (
                   <MenuItem onClick={() => todoStateChange3(todo)}>完了</MenuItem>
                 </MenuList>
               </Menu>
-              {/* {TodoState(todo.state)} */}
               <Box fontWeight="bold">{todo.state === 1 ? "未完了" : todo.state === 2 ? "進行中" : "完了"}</Box>
               <Box display="flex" paddingLeft="10px">
                 {details.map((detail:any)=>(
@@ -233,12 +266,16 @@ return (
               </Box>
             </Flex>
             </Center>
-            
           ))}
           </Box>
-        
       </ChakraProvider>
+    </>
+    ): (<Box display="flex" margin="0 auto">
+      <Button onClick={signInWithGoogle}><p>グーグルでサインイン</p></Button>
+      </Box>) }
   </>
+  
+      
 );
 }
 
