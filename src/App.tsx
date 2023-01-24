@@ -1,9 +1,13 @@
 import React, { useState , useEffect } from 'react';
-import {Box, ButtonGroup, Center, ChakraProvider, Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react';
-import {Button, Input, Flex } from '@chakra-ui/react';
+import { Box, ChakraProvider } from '@chakra-ui/react';
+import { Button } from '@chakra-ui/react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from './firebase';
 import { useAuthState } from "react-firebase-hooks/auth";
+import { AddTodos } from "./components/addTodos";
+import { EditTodos } from './components/editTodo';
+import { Options } from './components/options';
+import { TodoList } from './components/todoList';
 
 function App()  {
   //type todos = {
@@ -60,12 +64,12 @@ useEffect(() => {
 //編集モードオン
   const editTodoContents = (todo:any) => {
     setEdit(true);
-    setEditTodo(todo.text);
     setEditTargetTodo({id:todo.id,text:todo.text,state:todo.state});
   }
 
 //編集したものを保持
   const editText = (e:React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
     setEditTodo(e.target.value);
     setEditTargetTodo({...editTargetTodo,text:editTodo})
 
@@ -137,9 +141,11 @@ const listSort = (todos: any) => {
 const detailInput=(e:React.ChangeEvent<HTMLInputElement>) => setDetailText(e.target.value);
 
 //詳細をセット
-const addDetail = () => {
-  setDetails([...details,detailText]);
+const addDetail = (todoId:number) => {
+  setDetails([...details,{id:todoId,text:detailText}]);
+  console.log(details);
   setDetailText("");
+
 }
 
 //絞り込み機能
@@ -200,74 +206,41 @@ return (
   <Button type="button" onClick={signOutWithGoogle}>サインアウト</Button>
   </Box>
     {edit ? (
-      <ChakraProvider>
-        <Center paddingTop="20px" paddingBottom="20px">
-        <Flex  width='520px' >
-          <Input size="sm" type="text" value={editTodo} onChange={editText} p="10px 5px"></Input>
-          <ButtonGroup gap="2" paddingLeft="10px">
-          <Button onClick={updateTodo}>更新</Button>
-          <Button onClick={() => setEdit(false)}>キャンセル</Button>
-          </ButtonGroup>
-        </Flex>
-        </Center>
-      </ChakraProvider>
+      <EditTodos
+      editTodo={editTodo}
+      editText={editText}
+      updateTodo={updateTodo}
+      setEdit={setEdit} />
     ) : (
       <ChakraProvider>
-        
-        <Center paddingTop="20px" paddingBottom="20px">
-        <form>
-          <Flex display="flex" w="520px" bg="">
-            <Input size="sm" type="text" placeholder="TODOを入力" onChange={textInput} value={todoText}></Input>
-            <Button colorScheme="blue" onClick={addTodo} marginLeft="10px">
-              作成
-            </Button>
-          </Flex>
-        </form>
-        </Center>
+        <AddTodos
+            todoText={todoText}
+            textInput={textInput}
+            addTodo={addTodo}>
+        </AddTodos>
       </ChakraProvider>
     ) }
       <ChakraProvider>
-          <Center>
-          <Button onClick={() => listSort(todoList)} size="sm" marginRight="10px">並び替え</Button>
-          <Menu>
-                <MenuButton as={Button} size="sm" marginRight="10px">絞り込み</MenuButton>
-                <MenuList>
-                  <MenuItem onClick={() => todoFilter1(todoList)}>未完了のTODO</MenuItem>
-                  <MenuItem onClick={() => todoFilter2(todoList)}>進行中のTODO</MenuItem>
-                  <MenuItem onClick={() => todoFilter3(todoList)}>完了したTODO</MenuItem>
-                </MenuList>
-          </Menu>
-          <Button onClick={resetTodoList} size="sm">戻す</Button>
-          </Center>
-          <Box bg="#ccffff" w="900px" h="fit-content"  margin="30px auto" justifyContent="space-between">
-          {displayedTodoList.map((todo: any) => (
-            <Center >
-            <Flex key={todo.id} align="center" >
-              <Box paddingRight="7px" fontSize="20px">{todo.text}</Box>
-              <Button onClick={() => deleteTodo(todo.id)} marginRight="10px">削除</Button>
-              <Button onClick={() => editTodoContents(todo)}marginRight="10px">編集</Button>
-              <Menu>
-                <MenuButton as={Button} marginRight="10px">進行状況</MenuButton>
-                <MenuList>
-                  <MenuItem onClick={() => todoStateChange1(todo)}>未完了</MenuItem>
-                  <MenuItem onClick={() => todoStateChange2(todo)}>進行中</MenuItem>
-                  <MenuItem onClick={() => todoStateChange3(todo)}>完了</MenuItem>
-                </MenuList>
-              </Menu>
-              <Box fontWeight="bold">{todo.state === 1 ? "未完了" : todo.state === 2 ? "進行中" : "完了"}</Box>
-              <Box display="flex" paddingLeft="10px">
-                {details.map((detail:any)=>(
-                  <Box key={detail}>
-                    {detail}
-                  </Box>
-                ))}
-                <Input placeholder={"詳細を入力"} onChange={detailInput} marginRight="5px"></Input>
-                <Button onClick={addDetail}>+</Button>
-              </Box>
-            </Flex>
-            </Center>
-          ))}
-          </Box>
+        <Options
+          listSort={listSort}
+          todoFilter1={todoFilter1}
+          todoFilter2={todoFilter2}
+          todoFilter3={todoFilter3}
+          resetTodoList={resetTodoList}
+          todoList={todoList}>
+          </Options>
+
+        <TodoList
+            displayedTodoList={displayedTodoList}
+            deleteTodo={deleteTodo}
+            editTodoContents={editTodoContents}
+            todoStateChange1={todoStateChange1}
+            todoStateChange2={todoStateChange2}
+            todoStateChange3={todoStateChange3}
+            detailInput={detailInput}
+            addDetail={addDetail}
+            details={details}
+            />
       </ChakraProvider>
     </>
     ): (<Box display="flex" margin="0 auto">
